@@ -1,0 +1,178 @@
+CONTRATO API - AUTENTICACIÓN (AUTH)
+
+Última actuualización: 2026-01-18
+Repositorio: tool-marketplace-api
+Autenticación: Laravel Sanctum (tokens Bearer)
+
+BASE URL (LOCAL)
+    - http://127.0.0.1:8000/api
+
+FORMATO
+    - Content-Type: application/json
+    - Respuestas en JSON
+
+AUTENTICACIÓN (TOKEN)
+    - Tipo: Bearer Token
+    - Header requerido en endpoints protegidos:
+        Authorization: Bearer <token>
+
+NOTAS
+    - Los endpoints públicos no requieren token.
+    - Los endpoints protegidos requieren middleware auth:sanctum
+
+POST /auth/register
+
+Descripción:
+    - Registra un nuevo usuario y devuelve un token de acceso.
+Autenticación:
+    - No requiere token (público).
+Request Headers:
+    - Content-Type: application/json
+Request Body (JSON):
+    - name: string (obligatorio, max 255)
+    - email: string (obligatorio, formato email, único)
+    - password: string (obligatorio, min 8)
+    - password_confirmation: string (obligatorio, debe coincidir con password)
+Respuesta OK:
+    - Código: 201
+    - Body:
+        - user: objeto usuario
+        - token: string (token Bearer)
+
+Ejemplo de request:
+{
+    "name":"Test",
+    "email": "test@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+
+Ejemplo de respuesta (201):
+{
+    "user": 
+    {
+        "id": 1,
+        "name": "Test",
+        "email": "test@example.com
+        ",
+        "created_at": "...",
+        "updated_at": "..."
+    },
+    "token": "..."
+}
+
+Errores:
+    - 422 Unprocessable Entity
+        - Motivo: validación (campos faltantes, email inválido, password no coincide, email ya existe)
+        - Body: estructura estándar de Laravel con errores por campo
+
+POST /auth/login
+
+Descripción:
+    - Autentica a un usuario existente y devuelve un nuevo token de acceso.
+
+Autenticación:
+    - No requiere token (público).
+
+Request Headers:
+    - Content-Type: application/json
+
+Request Body (JSON):
+    - email: string (obligatorio, formato email)
+    - password: string (obligatorio)
+
+Respuesta OK:
+    - Código: 200
+    - Body:
+        - user: objeto usuario
+        - token: string (token Bearer)
+
+Ejemplo de request:
+    {
+        "email": "test@example.com
+        ",
+        "password": "password123"
+    }
+
+Ejemplo de respuesta (200):
+    {
+        "user": 
+        {
+            "id": 1,
+            "name": "Test",
+            "email": "test@example.com
+            ",
+            "created_at": "...",
+            "updated_at": "..."
+        },
+        "token": "..."
+    }
+
+Errores:
+    - 422 Unprocessable Entity
+        - Motivo: credenciales inválidas o datos mal formados
+
+GET /auth/me
+
+Descripción:
+    - Devuelve la información del usuario autenticado asociado al token enviado.
+
+Autenticación:
+    - Requiere token Bearer.
+
+Request Headers:
+    - Authorization: Bearer <token>
+
+Request Body:
+    -No aplica.
+
+Respuesta OK:
+    - Código: 200
+    - Body:
+        - user: objeto usuario
+
+Ejemplo de respuesta (200):
+    {
+        "user":
+        {
+            "id": 1,
+            "name": "Test",
+            "email": "test@example.com
+            ",
+            "created_at": "...",
+            "updated_at": "..."
+        }
+    }
+
+Errores:
+    - 401 Unauthorized
+        Motivo: token ausente, inválido o expirado
+
+POST /auth/logout
+
+Descripción:
+    - Cierra la sesión del usuario revocando el token actual.
+
+Autenticación:
+    - Requiere token Bearer.
+
+Request Headers:
+    - Authorization: Bearer <token>
+
+Request Body:
+    - No aplica.
+
+Respuesta OK:
+    - Código: 200
+    - Body:
+        - message: string
+
+Ejemplo de respuesta (200):
+{
+    "message": "Sesión cerrada."
+}
+
+Errores:
+
+    - 401 Unauthorized
+        Motivo: token ausente o inválido
