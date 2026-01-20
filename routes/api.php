@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
+use App\Http\Controllers\Api\ModuleController;
+use App\Http\Controllers\Api\Admin\ModuleAdminController;
+
 /**
  * --------------------------------------------------------------
  * Rutas de la API
@@ -87,5 +90,18 @@ Route::prefix('auth')->group(function () {
          * 
          */
         Route::post('/logout', [AuthController::class, 'logout']);
+    });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Módulos (lectura privada)
+    Route::get('/modules', [ModuleController::class, 'index']);
+    Route::get('/modules/{slug}', [ModuleController::class, 'show']);
+
+    // Administración de módulos
+    Route::prefix('admin')->group(function () {
+        Route::post('/modules', [ModuleAdminController::class, 'store']);
+        Route::post('/modules/{moduleId}/grant', [ModuleAdminController::class, 'grant']);
     });
 });

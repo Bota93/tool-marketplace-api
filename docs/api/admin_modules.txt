@@ -1,0 +1,54 @@
+CONTRATO API - ADMIN MÓDULOS
+
+Base URL:
+    - http://127.0.0.1:8000/api
+Autenticación:
+    - Requiere Bearer Token (auth:sanctum)
+    - Solo usuarios admin (is_admin = true)
+Notas de seguridad:
+    - Si el usuario no es admin, se responde 404 para ocultar el endpoint.
+
+POST /admin/modules
+
+Descripción:
+    - Crea un módulo.
+Auth:
+    - Requiere token admin.
+Body (JSON):
+    - name (string, required)
+    - slug (string, required, unique)
+    - summary (string, optional)
+    - description (string, optional)
+    - version (string, optional)
+    - price_cents (int, required, min 0)
+    - currency (string, optional, ISO 3, default EUR)
+    - status (draft|published, required)
+Respuesta OK:
+    - 201
+    - Body:
+        - data: módulo creado
+Errores:
+    - 401: no autenticado
+    - 404: no admin
+    - 422: validación
+
+POST /admin/modules/{moduleId}/grant
+
+Descripción:
+    - Concede acceso gratuito a un usuario sobre un módulo.
+    - Si el acceso existía y estaba revocado, lo reactiva.
+Auth:
+    - Requiere token admin.
+Parámetros:
+    - moduleId (int): id del módulo.
+Body (JSON):
+    - user_email (string, required)
+Respuesta OK:
+    - 200
+    - Body:
+        - data: acceso (module_access)
+Errores:
+    - 401: no autenticado
+    - 404: no admin/ módulo no existe/ usuario no existe
+
+FIN DEL CONTRATO - ADMIN MÓDULOS

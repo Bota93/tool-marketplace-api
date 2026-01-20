@@ -1,0 +1,44 @@
+CONTRATO API - MÓDULOS
+
+Base URL:
+
+    - http://127.0.0.1:8000/api
+
+Autenticación:
+    - Requiere Bearer Token (auth:sanctum)
+    - Header: Authorrization: Bearer <token>
+    - Header: Accept: application/json
+Notas de seguridad:
+    - Los módulos son privados por defecto.
+    - Si el usuario no tiene acceso, se responde 404 para no revelar existencia.
+
+GET /modules
+
+Descripción
+    - Lista de módulos publicados a los que el usuario autenticado tiene acceso (revoked_at = null)
+Auth:
+    - Requiere token.
+Respuesta OK:
+    - 200
+    - Body:
+        - data: array de módulos
+Errores:
+    - 401: no autenticado
+
+GET /modules/{slug}
+
+Descripción:
+    - Devuelve el detalle de un módulo publicado por slug, solo si el usuario tiene acceso.
+Auth:
+    - Requiere token.
+Parámetros:
+    - slug (string): identificador único del módulo
+Respuesta OK:
+    - 200
+    - Body:
+        - data: módulo
+Errores:
+    - 401: no autenticado.
+    - 404: módulo inexistente o sin acceso.
+
+FIN DEL CONTRATO - MODULOS
