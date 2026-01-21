@@ -20,23 +20,10 @@ use Illuminate\Http\Request;
 class ModuleAdminController extends Controller
 {
     /**
-     * Verifica que el usuario sea administrador.
-     * Si no lo es, se responde con 404 para ocultar el endpoint.
-     */
-    private function assertAdmin(Request $request): void
-    {
-        if (!$request->user() || !$request->user()->is_admin) {
-            abort(404);
-        }
-    }
-
-    /**
      * Crea un nuevo módulo.
      */
     public function store(Request $request)
     {
-        $this->assertAdmin($request);
-
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:modules,slug'],
@@ -69,8 +56,6 @@ class ModuleAdminController extends Controller
      */
     public function grant(Request $request, int $moduleId)
     {
-        $this->assertAdmin($request);
-
         $validated = $request->validate([
             'user_email' => ['required', 'email'],
         ]);

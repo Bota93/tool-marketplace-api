@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ModuleAccess;
+use App\Models\User;
+
 
 /**
  * Modelo Module
@@ -48,5 +51,28 @@ class Module extends Model
     public function accesses()
     {
         return $this->hasMany(ModuleAccess::class);
+    }
+
+    /**
+     * Scope: solo módulos publicados
+     */
+    public function scopePublished(Builder $query): Builder
+    {
+        return $query->where('status', 'published');
+    }
+
+    /**
+     * Scope: módulos accesibles por un usuario (acceso nativo).
+     * 
+     * Reglas:
+     *  - Debe existir un registro en module_accesses
+     *  - revoked_at debe ser null
+     */
+    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    {
+        return $query->whereHas('accesses', function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+                ->whereNull('revoked_at');
+        });
     }
 }

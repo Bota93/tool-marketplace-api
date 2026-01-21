@@ -100,7 +100,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/modules/{slug}', [ModuleController::class, 'show']);
 
     // Administración de módulos
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware('admin')->group(function () {
         Route::post('/modules', [ModuleAdminController::class, 'store']);
         Route::post('/modules/{moduleId}/grant', [ModuleAdminController::class, 'grant']);
     });

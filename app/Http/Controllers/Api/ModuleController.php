@@ -7,11 +7,14 @@ use App\Models\Module;
 use Illuminate\Http\Request;
 
 /**
- * Controlador de módulos (lectura).
+ * Controlador de módulos (lectura privada).
  *
  * Expone únicamente los módulos a los que el usuario autenticado
  * tiene acceso válido. Si no hay acceso, el sistema responde 404
  * para no revelar la existencia del recurso.
+ * 
+ * Regla de seguridad:
+ *  - Si no hay un acceso, devolvemos 404 (no revelamos existencia)
  */
 class ModuleController extends Controller
 {
@@ -23,11 +26,8 @@ class ModuleController extends Controller
         $user = $request->user();
 
         $modules = Module::query()
-            ->where('status', 'published')
-            ->whereHas('accesses', function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->whereNull('revoked_at');
-            })
+            ->published()
+            ->accesibleBy($user)
             ->orderBy('name')
             ->get();
 
@@ -47,12 +47,9 @@ class ModuleController extends Controller
         $user = $request->user();
 
         $module = Module::query()
+            ->published()
+            ->accessibleBy($user)
             ->where('slug', $slug)
-            ->where('status', 'published')
-            ->whereHas('accesses', function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->whereNull('revoked_at');
-            })
             ->first();
 
         if (!$module) {
