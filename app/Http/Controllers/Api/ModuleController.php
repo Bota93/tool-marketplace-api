@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Module;
+
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
 /**
@@ -47,13 +49,17 @@ class ModuleController extends Controller
         $user = $request->user();
 
         $module = Module::query()
-            ->published()
-            ->accessibleBy($user)
             ->where('slug', $slug)
             ->with('media')
             ->first();
 
         if (!$module) {
+            abort(404);
+        }
+
+        try {
+            $this->authorize('view', $module);
+        } catch (AuthorizationException $e) {
             abort(404);
         }
 
