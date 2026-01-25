@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ModuleAccess;
 use App\Models\User;
+use App\Models\ModuleMedia;
 
 
 /**
@@ -74,5 +75,13 @@ class Module extends Model
             $q->where('user_id', $user->id)
                 ->whereNull('revoked_at');
         });
+    }
+
+    /**
+     * Media asociada al módulo (imágenes)
+     */
+    public function media()
+    {
+        return $this->hasMany(ModuleMedia::class)->orderBy('sort_order');
     }
 }

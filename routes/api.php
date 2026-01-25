@@ -103,5 +103,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::post('/modules', [ModuleAdminController::class, 'store']);
         Route::post('/modules/{moduleId}/grant', [ModuleAdminController::class, 'grant']);
+        Route::post('/modules/{moduleId}/media', [ModuleAdminController::class, 'addMedia']);
     });
 });

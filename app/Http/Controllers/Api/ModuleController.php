@@ -27,7 +27,7 @@ class ModuleController extends Controller
 
         $modules = Module::query()
             ->published()
-            ->accesibleBy($user)
+            ->accessibleBy($user)
             ->orderBy('name')
             ->get();
 
@@ -50,6 +50,7 @@ class ModuleController extends Controller
             ->published()
             ->accessibleBy($user)
             ->where('slug', $slug)
+            ->with('media')
             ->first();
 
         if (!$module) {

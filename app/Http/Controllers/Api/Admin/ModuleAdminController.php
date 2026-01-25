@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Module;
 use App\Models\ModuleAccess;
 use App\Models\User;
+use App\Models\ModuleMedia;
 use Illuminate\Http\Request;
 
 /**
@@ -87,5 +88,34 @@ class ModuleAdminController extends Controller
         return response()->json([
             'data' => $access,
         ]);
+    }
+
+    /**
+     * MVP:
+     * - Solo admin
+     * Solo URL externa
+     */
+    public function addMedia(Request $request, int $moduleId)
+    {
+        $validated = $request->validate([
+            'type' => ['required', 'in:image,video'],
+            'url' => ['required', 'url'],
+            'provider' => ['nullable', 'string', 'max:50'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'alt_text' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $module = Module::query()->findOrFail($moduleId);
+
+        $media = ModuleMedia::create([
+            'module_id' => $module->id,
+            'type' => $validated['type'],
+            'url' => $validated['url'],
+            'provider' => $validated['provider'] ?? null,
+            'sort_order' => $validated['sort_order'] ?? 0,
+            'alt_text' => $validated['alt_text'] ?? null,
+        ]);
+
+        return response()->json(['data' => $media], 201);
     }
 }
