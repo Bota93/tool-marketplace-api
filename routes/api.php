@@ -35,74 +35,88 @@ use App\Http\Controllers\Api\Admin\ModuleAdminController;
  * - Rutas protegidas: me, logout
  * 
  */
-Route::prefix('auth')->group(function () {
-    /**
-     * --------------------------------------------------------------
-     * Registro de usuario (ruta pública)
-     * --------------------------------------------------------------
-     * 
-     * Permite crear un nuevo usuario en el sistema.
-     * Devuelve un token de autenticación que deberá ser usado
-     * por el cliente en las siguientes peticiones.
-     * 
-     */
-    Route::post('/register', [AuthController::class, 'register']);
+Route::prefix('v1')->group(function () {
 
     /**
-     * --------------------------------------------------------------
-     * Login de usuario (ruta pública)
-     * --------------------------------------------------------------
-     * 
-     * Verifica las credenciales del usuario y genera un nuevo token.
-     * No utiliza sesiones ni cookies.
-     * 
+     * Auth
      */
-    Route::post('/login', [AuthController::class, 'login']);
-
-    /**
-     * --------------------------------------------------------------
-     * Rutas protegidas por autenticación
-     * --------------------------------------------------------------
-     * 
-     * Estas rutas requieren un token válido enviado en el header
-     * Authorization mediante el middleware auth:sanctum.
-     * 
-     */
-    Route::middleware('auth:sanctum')->group(function () {
-        
+    Route::prefix('auth')->group(function () {
         /**
          * --------------------------------------------------------------
-         * Usuario autenticado actual
+         * Registro de usuario (ruta pública)
          * --------------------------------------------------------------
          * 
-         * Devuelve la información del usuario asociado al token
-         * utilizado en la petición.
+         * Permite crear un nuevo usuario en el sistema.
+         * Devuelve un token de autenticación que deberá ser usado
+         * por el cliente en las siguientes peticiones.
          * 
          */
-        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/register', [AuthController::class, 'register']);
 
         /**
          * --------------------------------------------------------------
-         * Logout
+         * Login de usuario (ruta pública)
          * --------------------------------------------------------------
          * 
-         * Revoca el token actual para impedir su uso posterior.
+         * Verifica las credenciales del usuario y genera un nuevo token.
+         * No utiliza sesiones ni cookies.
          * 
          */
-        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/login', [AuthController::class, 'login']);
+
+        /**
+         * --------------------------------------------------------------
+         * Rutas protegidas por autenticación
+         * --------------------------------------------------------------
+         * 
+         * Estas rutas requieren un token válido enviado en el header
+         * Authorization mediante el middleware auth:sanctum.
+         * 
+         */
+        Route::middleware('auth:sanctum')->group(function () {
+
+            /**
+             * --------------------------------------------------------------
+             * Usuario autenticado actual
+             * --------------------------------------------------------------
+             * 
+             * Devuelve la información del usuario asociado al token
+             * utilizado en la petición.
+             * 
+             */
+            Route::get('/me', [AuthController::class, 'me']);
+
+            /**
+             * --------------------------------------------------------------
+             * Logout
+             * --------------------------------------------------------------
+             * 
+             * Revoca el token actual para impedir su uso posterior.
+             * 
+             */
+            Route::post('/logout', [AuthController::class, 'logout']);
+        });
     });
-});
 
-Route::middleware('auth:sanctum')->group(function () {
-
-    // Módulos (lectura privada)
+    /**
+     * Modules (Marketplace read)
+     * 
+     * Se hace público
+     */
     Route::get('/modules', [ModuleController::class, 'index']);
-    Route::get('/modules/{slug}', [ModuleController::class, 'show']);
+    Route::get('/modules/{module:slug}', [ModuleController::class, 'show']);
 
-    // Administración de módulos
-    Route::prefix('admin')->middleware('admin')->group(function () {
+    /**
+     * Admin (oculto con 404 si no admin)
+     */
+    Route::middleware('auth:sanctum')->prefix('admin')->middleware('admin')->group(function () {
+        // Administración de módulos
         Route::post('/modules', [ModuleAdminController::class, 'store']);
-        Route::post('/modules/{moduleId}/grant', [ModuleAdminController::class, 'grant']);
-        Route::post('/modules/{moduleId}/media', [ModuleAdminController::class, 'addMedia']);
+        //Route::patch('/modules/{module}', [ModuleAdminController::class, 'update']);
+
+        Route::post('/modules/{module}/accesses', [ModuleAdminController::class, 'grant']);
+        //Route::delete('/modules/{module}/accesses/{user}', [ModuleAdminController::class, 'revoke']);
+
+        Route::post('/modules/{module}/media', [ModuleAdminController::class, 'addMedia']);
     });
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Module;
 
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 
@@ -25,7 +26,7 @@ class ModuleController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        $user = $request->user('sanctum'); //puede ser null
 
         $modules = Module::query()
             ->published()
@@ -44,21 +45,17 @@ class ModuleController extends Controller
      * Si el módulo no existe, no está publicado o el usuario
      * no tiene acceso, se responde con 404.
      */
-    public function show(Request $request, string $slug)
+    public function show(Request $request, Module $module)
     {
-        $user = $request->user();
-
-        $module = Module::query()
-            ->where('slug', $slug)
-            ->with('media')
-            ->first();
-
-        if (!$module) {
+        // Asegurar published (si alguien intenta acceder al draft por el slug)
+        if ($module->status !== 'published') {
             abort(404);
         }
+        $module->load('media');
 
+        $user =  $request->user('sanctum');
         try {
-            $this->authorize('view', $module);
+            Gate::forUser($user)->authorize('view', $module);
         } catch (AuthorizationException $e) {
             abort(404);
         }

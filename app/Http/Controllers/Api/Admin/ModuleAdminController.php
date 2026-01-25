@@ -55,35 +55,27 @@ class ModuleAdminController extends Controller
     /**
      * Concede acceso a un módulo a un usuario (gratis).
      */
-    public function grant(Request $request, int $moduleId)
+    public function grant(Request $request, Module $module)
     {
         $validated = $request->validate([
             'user_email' => ['required', 'email'],
         ]);
 
         $user = User::query()->where('email', $validated['user_email'])->firstOrFail();
-        $module = Module::query()->findOrFail($moduleId);
 
-        $access = ModuleAccess::query()
-            ->where('module_id', $module->id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if ($access) {
-            $access->update([
-                'access_type' => 'grant',
-                'granted_by_user_id' => $request->user()->id,
-                'revoked_at' => null,
-                'metadata' => null,
-            ]);
-        } else {
-            $access = ModuleAccess::create([
+        $access = ModuleAccess::query()->updateOrCreate(
+            [
                 'module_id' => $module->id,
                 'user_id' => $user->id,
+            ],
+            [
                 'access_type' => 'grant',
-                'granted_by_user_id' => $request->user()->id,
-            ]);
-        }
+                'granted_by_user_id' => $request->user('sanctum')->id,
+                'revoked_at' => null,
+                'metadata' => null,
+            ]
+        );
+
 
         return response()->json([
             'data' => $access,
@@ -95,7 +87,7 @@ class ModuleAdminController extends Controller
      * - Solo admin
      * Solo URL externa
      */
-    public function addMedia(Request $request, int $moduleId)
+    public function addMedia(Request $request, Module $module)
     {
         $validated = $request->validate([
             'type' => ['required', 'in:image,video'],
@@ -104,8 +96,6 @@ class ModuleAdminController extends Controller
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'alt_text' => ['nullable', 'string', 'max:255'],
         ]);
-
-        $module = Module::query()->findOrFail($moduleId);
 
         $media = ModuleMedia::create([
             'module_id' => $module->id,
