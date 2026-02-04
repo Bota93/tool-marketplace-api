@@ -1,59 +1,236 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Tool Marketplace API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend **API-first** para una plataforma privada de módulos/herramientas de desarrollo.
+Diseñado como base de un SaaS tipo *marketplace*, con control de acceso por usuario,
+roles administrativos y soporte para contenido multimedia asociado a cada módulo.
 
-## About Laravel
+> ⚠️ Este repositorio **no sirve vistas**. Es un backend puro pensado para ser consumido
+> por un frontend web o móvil.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🧠 Visión general
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+La plataforma permite:
 
-## Learning Laravel
+- Autenticación mediante tokens (Laravel Sanctum)
+- Usuarios normales y administradores (`is_admin`)
+- Creación de módulos privados (solo administradores)
+- Concesión de acceso a módulos por usuario (grants)
+- Ocultación de recursos no autorizados (404)
+- Asociación de media (imágenes por URL) a los módulos
+- Entorno de desarrollo reproducible mediante seeders
+- Smoke test automático para validación end-to-end
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🧱 Stack tecnológico
 
-## Laravel Sponsors
+- **PHP 8.3**
+- **Laravel 11**
+- **PostgreSQL**
+- **Laravel Sanctum** (autenticación por tokens)
+- **Eloquent ORM**
+- **WSL2 / Docker** para entorno local
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 📁 Estructura de carpetas
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```
+tool-marketplace-api/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Controller.php
+│   │   │   └── Api/
+│   │   │       ├── AuthController.php
+│   │   │       ├── ModuleController.php
+│   │   │       └── Admin/
+│   │   │           └── ModuleAdminController.php
+│   │   └── Middleware/
+│   │       └── EnsureAdmin.php
+│   ├── Models/
+│   │   ├── User.php
+│   │   ├── Module.php
+│   │   ├── ModuleAccess.php
+│   │   └── ModuleMedia.php
+│   ├── Policies/
+│   │   └── ModulePolicy.php
+│   └── Providers/
+│       └── AuthServiceProvider.php
+│
+├── database/
+│   ├── migrations/
+│   │   ├── 2026_01_18_203923_create_modules_table.php
+│   │   ├── 2026_01_18_204500_create_module_accesses_table.php
+│   │   └── 2026_01_25_081926_create_module_media_table.php
+│   └── seeders/
+│       ├── DatabaseSeeder.php
+│       └── DevSeeder.php
+│
+├── routes/
+│   ├── api.php
+│   ├── web.php
+│   └── console.php
+│
+├── scripts/
+│   └── smoke.sh
+│
+├── public/
+├── storage/
+├── tests/
+├── vendor/
+│
+├── artisan
+├── composer.json
+├── composer.lock
+├── phpunit.xml
+├── README.md
+└── .env (no versionar)
+```
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🔐 Autenticación
 
-## Code of Conduct
+La autenticación se realiza mediante **tokens** usando Laravel Sanctum.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Login
+```
+POST /api/auth/login
+```
 
-## Security Vulnerabilities
+El token devuelto debe enviarse en todas las peticiones protegidas:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+Authorization: Bearer <token>
+```
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 👥 Roles y autorización
+
+- **Usuario normal**
+  - Puede listar y ver únicamente los módulos a los que tiene acceso.
+- **Administrador (`is_admin = true`)**
+  - Puede crear módulos.
+  - Puede conceder acceso a usuarios.
+  - Puede añadir media a los módulos.
+
+Los endpoints administrativos están protegidos por middleware `admin` y
+se **ocultan** a usuarios no autorizados devolviendo **404**.
+
+---
+
+## 📦 Módulos
+
+Un **módulo** representa una herramienta, script o recurso privado.
+
+Características:
+- Privado por defecto.
+- Puede ser gratuito o de pago (estructura preparada).
+- Accesible solo si existe un acceso válido en `module_accesses`.
+- Puede tener múltiples elementos multimedia asociados.
+
+### Endpoints principales
+
+```
+GET /api/modules
+GET /api/modules/{slug}
+```
+
+> Si el usuario no tiene acceso al módulo, el endpoint responde **404**
+> para no revelar su existencia.
+
+---
+
+## 🖼 Media de módulos
+
+Cada módulo puede tener media asociada (imágenes por URL).
+
+Por ahora:
+- Solo URLs externas (por ejemplo GitHub raw).
+- No se gestionan uploads directos.
+
+Endpoint admin:
+```
+POST /api/admin/modules/{id}/media
+```
+
+---
+
+## 🛡 Seguridad
+
+- Policies centralizadas (`ModulePolicy`).
+- Middleware `admin` para rutas administrativas.
+- Ocultación de recursos no autorizados (404).
+- Respuestas API unificadas (401 / 404 / 422).
+
+---
+
+## 🌱 Entorno de desarrollo (Seeder)
+
+El proyecto incluye un **DevSeeder** que crea automáticamente:
+
+- Usuario admin: `admin@example.com` / `password123`
+- Usuario normal: `user@example.com` / `password123`
+- Módulo publicado `qr-generator-2`
+- Acceso concedido al usuario
+- Media de ejemplo asociada al módulo
+
+### Comando
+```
+php artisan migrate:fresh --seed
+```
+
+> ⚠️ Este seeder es **solo para desarrollo**.
+
+---
+
+## 🧪 Smoke test
+
+Existe un script de validación rápida del sistema:
+
+```
+./scripts/smoke.sh
+```
+
+Valida automáticamente:
+- Login admin y usuario.
+- Rol de administrador correcto.
+- Ocultación de endpoints admin.
+- Acceso a módulos según grants.
+- Presencia de media en el detalle del módulo.
+
+Flujo recomendado:
+```
+php artisan migrate:fresh --seed
+./scripts/smoke.sh
+```
+
+---
+
+## 🚀 Estado del proyecto
+
+✔ Backend core estable  
+✔ Autenticación y roles funcionales  
+✔ Control de acceso validado  
+✔ Entorno reproducible  
+✔ Smoke test end-to-end  
+
+### Próximos pasos previstos
+- Endurecer contrato API (Resources, paginación).
+- Frontend MVP (React o Vue).
+- Tests automatizados con PHPUnit.
+- Preparación para monetización futura.
+
+---
+
+## 📌 Notas finales
+
+- El frontend se desarrollará en un repositorio independiente.
+- No versionar `.env`.
+- Proyecto orientado a portfolio y evolución a SaaS.
+
+---
