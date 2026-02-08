@@ -69,12 +69,19 @@ class Module extends Model
      *  - Debe existir un registro en module_accesses
      *  - revoked_at debe ser null
      */
-    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    public function scopeAccessibleBy(Builder $query, ?User $user): Builder
     {
-        return $query->whereHas('accesses', function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-                ->whereNull('revoked_at');
-        });
+        // Público: solo publicados
+        if (!$user) {
+            return $query;
+        }
+
+        // Autenticado: publicados + concedidos
+         return $query->whereHas('accesses', function ($q) use ($user) {
+        $q->where('user_id', $user->id)
+          ->whereNull('revoked_at');
+                });
+        
     }
 
     /**
